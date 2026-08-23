@@ -456,7 +456,9 @@
             #ubot-log { height: 132px; overflow-y: auto; background: rgba(0,0,0,.45); padding: 8px; font-size: 10px;
                 color: #d1d1d6; font-family: ui-monospace, monospace; border-radius: 7px; line-height: 1.6;
                 border: 1px solid rgba(255,255,255,.06); }
-            #ubot-set { padding: 12px; display: none; max-height: 62vh; overflow-y: auto; }
+            #ubot-set { padding: 12px; display: none; }
+            /* 內容獨立捲動，儲存按鈕留在外層，捲動時仍固定在底部 */
+            #ubot-scroll { max-height: 56vh; overflow-y: auto; padding-right: 2px; }
             .ubot-grp { background: rgba(255,255,255,.05); padding: 10px; border-radius: 9px; margin-bottom: 9px; }
             .ubot-grp-t { font-size: 10px; color: #0a84ff; font-weight: 800; letter-spacing: 1px;
                 margin-bottom: 7px; border-bottom: 1px solid rgba(255,255,255,.06); padding-bottom: 4px; }
@@ -471,7 +473,7 @@
             .ubot-b { background: #2c2c2e; color: #fff; border: 1px solid #48484a; border-radius: 5px;
                 cursor: pointer; padding: 4px 9px; font-size: 11px; white-space: nowrap; }
             .ubot-b:hover { background: #0a84ff; border-color: #0a84ff; }
-            .ubot-hint { font-size: 9px; color: #6e6e73; margin-top: 4px; line-height: 1.4; }
+            .ubot-hint { font-size: 9px; color: #6e6e73; margin-top: 3px; line-height: 1.3; }
             .ubot-empty { font-size: 10px; color: #5a5a5e; padding: 5px 2px; }
             .ubot-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
             .ubot-tag { background: rgba(10,132,255,.18); border: 1px solid #0a84ff; color: #fff;
@@ -481,11 +483,11 @@
             .ubot-x { cursor: pointer; opacity: .55; margin-left: 4px; font-weight: bold; }
             .ubot-x:hover { opacity: 1; color: #ff453a; }
             #ubot-prio { margin-top: 6px; }
-            .ubot-item { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,.06);
-                border: 1px solid rgba(255,255,255,.1); border-radius: 6px; padding: 4px 6px; margin-bottom: 4px;
-                cursor: grab; font-size: 11px; }
+            .ubot-item { display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,.06);
+                border: 1px solid rgba(255,255,255,.1); border-radius: 5px; padding: 2px 5px; margin-bottom: 3px;
+                cursor: grab; font-size: 11px; line-height: 1.5; }
             .ubot-item.over { border-color: #0a84ff; background: rgba(10,132,255,.18); }
-            .ubot-num { background: #0a84ff; color: #fff; width: 15px; height: 15px; border-radius: 50%;
+            .ubot-num { background: #0a84ff; color: #fff; width: 14px; height: 14px; border-radius: 50%;
                 font-size: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: 700; }
             .ubot-txt { flex: 1; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
             .ubot-mv { cursor: pointer; color: #8e8e93; font-size: 9px; padding: 0 1px; }
@@ -514,6 +516,7 @@
                     ${CONFIG.BOT_ENABLED ? '停止運行' : '啟動運行'}</button>
             </div>
             <div id="ubot-set">
+              <div id="ubot-scroll">
                 <div class="ubot-grp">
                     <div class="ubot-grp-t">目標</div>
                     <div class="ubot-r"><label>購票數量</label>
@@ -529,7 +532,7 @@
                             <button id="c-add-date" class="ubot-b">新增</button>
                         </div></div>
                     <div id="ubot-dates" class="ubot-tags"></div>
-                    <div class="ubot-hint">留空表示不限定日期，將選取第一個可購買的場次</div>
+                    <div class="ubot-hint">留空＝不限日期</div>
                 </div>
 
                 <div class="ubot-grp">
@@ -538,15 +541,15 @@
                     ${MODES.map(([v, t]) => `<option value="${v}" ${CONFIG.AREA_MODE === v ? 'selected' : ''}>${t}</option>`).join('')}
                     </select>
                     <div id="box-prio" style="margin-top:8px">
-                        <label style="font-size:11px;color:#aeaeb2;font-weight:600">優先清單（可拖曳，或使用 ▲▼ 調整順序）</label>
+                        <label style="font-size:11px;color:#aeaeb2;font-weight:600"
+                               title="依序比對，排在前面的優先。可拖曳項目或使用 ▲▼ 調整順序。">優先清單（拖曳或 ▲▼ 排序）</label>
                         <div class="ubot-add">
-                            <input type="text" id="i-prio" class="ubot-in" placeholder="VIP / 紅219區 / 6680">
+                            <input type="text" id="i-prio" class="ubot-in" placeholder="VIP / 紅219區 / 6680"
+                                   title="採子字串比對，比對範圍包含票區列文字及其群組標題。&#10;不同群組的票區同名（例如皆為「全區」）時，請輸入群組名稱以區分。&#10;輸入「A1」將同時符合 A10、A11，建議連同「區」一併輸入。">
                             <button id="c-add-prio" class="ubot-b">＋ 新增</button>
                         </div>
                         <div id="ubot-prio"></div>
-                        <div class="ubot-hint">採子字串比對，比對範圍包含票區列文字及其群組標題。<br>
-                            當不同群組的票區同名（例如皆為「全區」）時，請輸入群組名稱以區分。<br>
-                            輸入「A1」將同時符合 A10、A11，建議連同「區」一併輸入。</div>
+                        <div class="ubot-hint">子字串比對，含群組標題；「A1」亦符合 A10</div>
                     </div>
                     <div id="box-range" style="margin-top:8px">
                         <div class="ubot-r"><label>價格範圍</label>
@@ -576,7 +579,7 @@
                         <input type="number" id="c-ocrto" class="ubot-in" value="${CONFIG.OCR_TIMEOUT}"></div>
                     <div class="ubot-r"><label>驗證碼長度</label>
                         <input type="number" id="c-caplen" class="ubot-in" value="${CONFIG.CAPTCHA_LENGTH}"></div>
-                    <div class="ubot-hint">填入兩個端點時將同時發送，採用最先回應者</div>
+                    <div class="ubot-hint">填兩個則同時發送，採用最先回應者</div>
                 </div>
 
                 <div class="ubot-grp">
@@ -593,6 +596,7 @@
                         <input type="checkbox" id="c-keep" ${CONFIG.KEEPALIVE ? 'checked' : ''}></div>
                 </div>
 
+              </div>
                 <button id="ubot-save" class="ubot-btn ubot-s">儲存並套用</button>
             </div>`;
         document.body.appendChild(g);
